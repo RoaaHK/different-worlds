@@ -1,21 +1,16 @@
 package com.example.DifferentWorlds.Service;
 
-import com.example.DifferentWorlds.Entity.Administrator;
-import com.example.DifferentWorlds.Entity.Author;
-import com.example.DifferentWorlds.Entity.Customer;
+import com.example.DifferentWorlds.Entity.AdministratorEntity;
+import com.example.DifferentWorlds.Entity.AuthorEntity;
+import com.example.DifferentWorlds.Entity.CustomerEntity;
 import com.example.DifferentWorlds.JWT.JwtUtils;
 import com.example.DifferentWorlds.Repository.AdministratorRepository;
 import com.example.DifferentWorlds.Repository.AuthorRepository;
 import com.example.DifferentWorlds.Repository.CustomerRepository;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Objects;
 
 @Service
 public class AuthenticationService {
@@ -39,7 +34,7 @@ public class AuthenticationService {
         this.authorRepository=authorRepository;
     }
 
-    public void signup(Customer newCustomer) {
+    public void signup(CustomerEntity newCustomer) {
         if (customerRepository.findByUserName(newCustomer.getUserName()).isPresent()) {
             throw new IllegalArgumentException("User already exists with this email");
         }
@@ -47,14 +42,14 @@ public class AuthenticationService {
         customerRepository.save(newCustomer);
     }
 
-    public void signup(Author newAuthor) {
+    public void signup(AuthorEntity newAuthor) {
         if (authorRepository.findByUserName(newAuthor.getUserName()).isPresent()) {
             throw new IllegalArgumentException("User already exists with this email");
         }
         newAuthor.setPassword(passwordEncoder.encode(newAuthor.getPassword()));
         authorRepository.save(newAuthor);
     }
-    public void signup(Administrator newAdmin) {
+    public void signup(AdministratorEntity newAdmin) {
         if (authorRepository.findByUserName(newAdmin.getUserName()).isPresent()) {
             throw new IllegalArgumentException("User already exists with this email");
         }

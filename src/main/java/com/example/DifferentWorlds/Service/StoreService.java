@@ -1,6 +1,6 @@
 package com.example.DifferentWorlds.Service;
-import com.example.DifferentWorlds.Entity.Author;
-import com.example.DifferentWorlds.Entity.LiteraryWorks;
+import com.example.DifferentWorlds.Entity.AuthorEntity;
+import com.example.DifferentWorlds.Entity.LiteraryWorksEntity;
 import com.example.DifferentWorlds.Enums.ContentTypes;
 import com.example.DifferentWorlds.Enums.FictionGenres;
 import com.example.DifferentWorlds.Enums.NonFictionGenres;
@@ -23,30 +23,30 @@ public class StoreService {
     }
 
 
-    public LiteraryWorks getItem(LiteraryWorks item, long itemId){
+    public LiteraryWorksEntity getItem(LiteraryWorksEntity item, long itemId){
         if(itemRepository.findById(itemId).isEmpty()) {
             System.out.println("Item Doesn't Found");
         }
         return item;
     }
-    public void addItem(LiteraryWorks item){
+    public void addItem(LiteraryWorksEntity item){
         if(itemRepository.findByTitle(item.getTitle()).isEmpty()) {
             itemRepository.save(item);
         }
     }
-    public void deleteItem(LiteraryWorks item){
+    public void deleteItem(LiteraryWorksEntity item){
         if(itemRepository.findByTitle(item.getTitle()).isPresent()) {
             itemRepository.delete(item);
         }
     }
-    public void incCounts(LiteraryWorks item){
-        Optional<LiteraryWorks> optionalObj=itemRepository.findByTitle(item.getTitle());
+    public void incCounts(LiteraryWorksEntity item){
+        Optional<LiteraryWorksEntity> optionalObj=itemRepository.findByTitle(item.getTitle());
 
         if(optionalObj.isEmpty()) {
             itemRepository.save(item);
         }
         else{
-            LiteraryWorks obj=optionalObj.get();
+            LiteraryWorksEntity obj=optionalObj.get();
             obj.setCounts(obj.getCounts()+item.getCounts());
             itemRepository.save(obj);
         }
@@ -54,8 +54,8 @@ public class StoreService {
 
     // 5-10 through exception, check if > | ==
     // 0 exception
-    public void decCounts(LiteraryWorks item){
-        Optional<LiteraryWorks> optionalObj=itemRepository.findByTitle(item.getTitle());
+    public void decCounts(LiteraryWorksEntity item){
+        Optional<LiteraryWorksEntity> optionalObj=itemRepository.findByTitle(item.getTitle());
         if(optionalObj.isPresent() && optionalObj.get().getCounts()>= item.getCounts()) {
             optionalObj.get().setCounts(optionalObj.get().getCounts()-item.getCounts());
             itemRepository.save(optionalObj.get());
@@ -64,8 +64,8 @@ public class StoreService {
              throw new ArithmeticException() ;
         }
     }
-    public void sale(LiteraryWorks item, double saleVal){
-        Optional<LiteraryWorks> optionalObj=itemRepository.findByTitle(item.getTitle());
+    public void sale(LiteraryWorksEntity item, double saleVal){
+        Optional<LiteraryWorksEntity> optionalObj=itemRepository.findByTitle(item.getTitle());
         if(optionalObj.get().isInStore()){
             optionalObj.get().setPrice(optionalObj.get().getPrice()*saleVal);
             itemRepository.save(optionalObj.get());
@@ -74,16 +74,16 @@ public class StoreService {
             throw new NoSuchElementException();
     }
 
-    public List<LiteraryWorks> getAllItems() {
+    public List<LiteraryWorksEntity> getAllItems() {
         return itemRepository.findAll();
     }
 
 
     public void addItem(String name, String about, double price, boolean inStore,
                         ContentTypes contentType, NonFictionGenres nonFictionGenre,
-                        FictionGenres fictionGenre, Author author) {
+                        FictionGenres fictionGenre, AuthorEntity author) {
         // TODO extrtact into another method
-        LiteraryWorks item = new LiteraryWorks();
+        LiteraryWorksEntity item = new LiteraryWorksEntity();
         item.setTitle(name);
         item.setAbout(about);
         item.setPrice(price);
@@ -95,14 +95,14 @@ public class StoreService {
         //item.setApprovedByAdmin(false);
         itemRepository.save(item);
     }
-    public void setNonFictionGenre(LiteraryWorks item, NonFictionGenres genre) {
+    public void setNonFictionGenre(LiteraryWorksEntity item, NonFictionGenres genre) {
         if (item.getFictionGenre() != null) {
             throw new IllegalArgumentException("Cannot set both fictionGenre and nonFictionGenre");
         }
         item.setNonFictionGenre(genre);
     }
 
-    public void setFictionGenre(LiteraryWorks item, FictionGenres genre) {
+    public void setFictionGenre(LiteraryWorksEntity item, FictionGenres genre) {
         if (item.getNonFictionGenre() != null) {
             throw new IllegalArgumentException("Cannot set both nonFictionGenre and fictionGenre");
         }

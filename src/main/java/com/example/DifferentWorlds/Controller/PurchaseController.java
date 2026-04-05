@@ -1,6 +1,6 @@
 package com.example.DifferentWorlds.Controller;
 
-import com.example.DifferentWorlds.Entity.PurchaseHistory;
+import com.example.DifferentWorlds.Entity.PurchaseHistoryEntity;
 import com.example.DifferentWorlds.Service.PurchaseService;
 import com.example.DifferentWorlds.dto.PurchaseRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +18,14 @@ public class PurchaseController {
     private PurchaseService purchaseService;
 
     @PostMapping
-    public ResponseEntity<PurchaseHistory> addPurchase(@RequestBody PurchaseRequest request) {
-        PurchaseHistory purchase= purchaseService.addPurchase(request.getCustomerId(), request.getLiteraryWorkId(), request.getPurchasePrice());
+    public ResponseEntity<PurchaseHistoryEntity> addPurchase(@RequestBody PurchaseRequest request) {
+        PurchaseHistoryEntity purchase= purchaseService.addPurchase(request.getCustomerId(), request.getLiteraryWorkId(), request.getPurchasePrice());
         return new ResponseEntity <>(purchase, HttpStatus.CREATED);
     }
 
     @GetMapping("/history/{customerId}")
-    public ResponseEntity<List<PurchaseHistory>> getPurchaseHistory(@PathVariable Integer customerId) {
-        List<PurchaseHistory> history = purchaseService.getPurchaseHistory(customerId);
+    public ResponseEntity<List<PurchaseHistoryEntity>> getPurchaseHistory(@PathVariable Integer customerId) {
+        List<PurchaseHistoryEntity> history = purchaseService.getPurchaseHistory(customerId);
         return new ResponseEntity <>(history, HttpStatus.OK);
     }
 }

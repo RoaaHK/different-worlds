@@ -1,9 +1,8 @@
 package com.example.DifferentWorlds.Controller;
 
-import com.example.DifferentWorlds.Entity.LiteraryWorks;
+import com.example.DifferentWorlds.Entity.LiteraryWorksEntity;
 import com.example.DifferentWorlds.Service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,8 +21,8 @@ public class AdminController {
 //    }
 
     @PatchMapping("/works/{id}/reject")
-    public ResponseEntity<LiteraryWorks> rejectWork(@PathVariable Long id) {
-        LiteraryWorks rejectedWork = adminService.rejectWork(id);
+    public ResponseEntity<LiteraryWorksEntity> rejectWork(@PathVariable Long id) {
+        LiteraryWorksEntity rejectedWork = adminService.rejectWork(id);
         return ResponseEntity.ok(rejectedWork);
     }
 }

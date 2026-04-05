@@ -1,32 +1,33 @@
 package com.example.DifferentWorlds.Entity;
 
-import com.example.DifferentWorlds.Enums.PaymentsMethods;
+import com.example.DifferentWorlds.Enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class Payment {
+public class PaymentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long paymentId;
 
     @ManyToOne
-    private Customer customer;
+    private CustomerEntity customer;
 
-    private double amount;
-    private String password;
+    private Double amount;
 
     @Enumerated(EnumType.STRING)
-    private PaymentsMethods paymentsMethods;
+    private PaymentMethod paymentMethod;
 
-    private LocalDateTime createdDate = LocalDateTime.now();
+    private LocalDateTime createdDate;
+    @PrePersist
+    protected void onCreate() {
+        this.createdDate = LocalDateTime.now();
+    }
 }

@@ -1,6 +1,6 @@
 package com.example.DifferentWorlds.Service;
 
-import com.example.DifferentWorlds.Entity.Customer;
+import com.example.DifferentWorlds.Entity.CustomerEntity;
 import com.example.DifferentWorlds.Repository.CustomerRepository;
 import com.example.DifferentWorlds.dto.UserDTO;
 import jakarta.persistence.EntityNotFoundException;
@@ -34,7 +34,7 @@ public class CustomerService implements UserDetailsService {
     @Transactional
     public void registerNewCustomer(UserDTO userDTO) {
 
-        Customer customer = new Customer();
+        CustomerEntity customer = new CustomerEntity();
         customer.setEmail(userDTO.getEmail());
         customer.setPassword(userDTO.getPassword());
 
@@ -46,50 +46,50 @@ public class CustomerService implements UserDetailsService {
 
     }
     // don't use @NotNull, check of null val in controller
-    public void updateEmail(Customer user) {
-        Optional<Customer> customer = customerRepository.findByUserName(user.getUserName());
+    public void updateEmail(CustomerEntity user) {
+        Optional<CustomerEntity> customer = customerRepository.findByUserName(user.getUserName());
         customer.get().setEmail(user.getEmail());
         customerRepository.save(customer.get());
     }
 
-    public void updatePassword(Customer user) {
-        Optional<Customer> customer = customerRepository.findByUserName(user.getUserName());
+    public void updatePassword(CustomerEntity user) {
+        Optional<CustomerEntity> customer = customerRepository.findByUserName(user.getUserName());
         customer.get().setPassword(user.getPassword());
         customerRepository.save(customer.get());
     }
 
-    public Customer getCustomer(long customerId) {
-        Optional<Customer> customerOptional = customerRepository.findById(customerId);
+    public CustomerEntity getCustomer(long customerId) {
+        Optional<CustomerEntity> customerOptional = customerRepository.findById(customerId);
         if (customerOptional.isEmpty()) {
             throw new EntityNotFoundException("Customer not found with ID: " + customerId);
         }
         return customerOptional.get();
     }
 
-    public Customer getCustomerUserName(String userName) {
-        Optional<Customer> customerOptional = customerRepository.findByUserName(userName);
+    public CustomerEntity getCustomerUserName(String userName) {
+        Optional<CustomerEntity> customerOptional = customerRepository.findByUserName(userName);
         if (customerOptional.isEmpty()) {
             throw new EntityNotFoundException("Customer not found with ID: " + userName);
         }
         return customerOptional.get();
     }
 
-    public void deleteCustomer(Customer customer) {
+    public void deleteCustomer(CustomerEntity customer) {
         if (customerRepository.findByUserName(customer.getUserName()).isPresent()) {
             customerRepository.delete(customer);
         }
     }
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Customer customer = customerRepository.findByUserName(username)
+        CustomerEntity customer = customerRepository.findByUserName(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
         return new org.springframework.security.core.userdetails.User(customer.getUserName(), customer.getPassword(),
                 new ArrayList<>());
     }
 
-    public List<Customer> allCustomers() {
-        List<Customer> customers = new ArrayList<>();
+    public List<CustomerEntity> allCustomers() {
+        List<CustomerEntity> customers = new ArrayList<>();
 
         customerRepository.findAll().forEach(customers::add);
 

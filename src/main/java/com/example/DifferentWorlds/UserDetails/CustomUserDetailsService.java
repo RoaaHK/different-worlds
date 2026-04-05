@@ -1,8 +1,8 @@
 package com.example.DifferentWorlds.UserDetails;
 
-import com.example.DifferentWorlds.Entity.Administrator;
-import com.example.DifferentWorlds.Entity.Author;
-import com.example.DifferentWorlds.Entity.Customer;
+import com.example.DifferentWorlds.Entity.AdministratorEntity;
+import com.example.DifferentWorlds.Entity.AuthorEntity;
+import com.example.DifferentWorlds.Entity.CustomerEntity;
 import com.example.DifferentWorlds.Repository.AdministratorRepository;
 import com.example.DifferentWorlds.Repository.AuthorRepository;
 import com.example.DifferentWorlds.Repository.CustomerRepository;
@@ -33,18 +33,18 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         logger.debug("Searching for user with username: {}", username);
         /// Check if the user is an author
-        Author author = authorRepository.findByUserName(username).orElse(null);
+        AuthorEntity author = authorRepository.findByUserName(username).orElse(null);
         if (author != null) {
             return new CustomUserDetails(author.getUserName(), author.getPassword(), "Author");
         }
 
         /// Check if the user is a customer
-        Customer customer = customerRepository.findByUserName(username).orElse(null);
+        CustomerEntity customer = customerRepository.findByUserName(username).orElse(null);
         if (customer != null) {
             return new CustomUserDetails(customer.getUserName(), customer.getPassword(), "Customer");
         }
         /// Check if the user is an admin
-        Administrator admin = administratorRepository.findByUserName(username).orElse(null);
+        AdministratorEntity admin = administratorRepository.findByUserName(username).orElse(null);
         if (admin != null) {
             return new CustomUserDetails(admin.getUserName(), admin.getPassword(), "Administrator");
         }

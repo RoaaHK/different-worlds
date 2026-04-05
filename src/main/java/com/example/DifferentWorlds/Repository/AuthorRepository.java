@@ -1,11 +1,11 @@
 package com.example.DifferentWorlds.Repository;
 
-import com.example.DifferentWorlds.Entity.Author;
+import com.example.DifferentWorlds.Entity.AuthorEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 @Repository
-public interface AuthorRepository extends JpaRepository<Author,Long> {
-     Optional<Author> findByUserName(String UserName);
+public interface AuthorRepository extends JpaRepository<AuthorEntity,Long> {
+     Optional<AuthorEntity> findByUserName(String UserName);
 }

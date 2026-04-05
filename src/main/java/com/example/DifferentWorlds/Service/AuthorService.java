@@ -1,9 +1,7 @@
 package com.example.DifferentWorlds.Service;
 
-import com.example.DifferentWorlds.Entity.Author;
-import com.example.DifferentWorlds.Entity.Customer;
-import com.example.DifferentWorlds.Entity.LiteraryWorks;
-import com.example.DifferentWorlds.Enums.LiteraryWorkStatus;
+import com.example.DifferentWorlds.Entity.AuthorEntity;
+import com.example.DifferentWorlds.Entity.LiteraryWorksEntity;
 import com.example.DifferentWorlds.Repository.AuthorRepository;
 import com.example.DifferentWorlds.Repository.ItemRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -29,7 +27,7 @@ public class AuthorService implements UserDetailsService {
     }
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Author author = authorRepository.findByUserName(username)
+        AuthorEntity author = authorRepository.findByUserName(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
         return new org.springframework.security.core.userdetails.User(author.getUserName(), author.getPassword(),
@@ -37,32 +35,32 @@ public class AuthorService implements UserDetailsService {
     }
 
     @Transactional
-    public LiteraryWorks submitWork(LiteraryWorks work) {
+    public LiteraryWorksEntity submitWork(LiteraryWorksEntity work) {
         //work.setApprovalStatus(LiteraryWorkStatus.PENDING);
         return literaryWorkRepository.save(work);
     }
 
     @Transactional(readOnly = true)
-    public LiteraryWorks getWork(Long workId) {
+    public LiteraryWorksEntity getWork(Long workId) {
         return literaryWorkRepository.findById(workId)
                 .orElseThrow(() -> new EntityNotFoundException("Literary work not found with ID: " + workId));
     }
 
     @Transactional
-    public void addAuthor(Author author) {
+    public void addAuthor(AuthorEntity author) {
         if (authorRepository.findByUserName(author.getUserName()).isPresent()) {
             throw new IllegalArgumentException("Username already exists");
         }
         authorRepository.save(author);
     }
 
-    @Transactional(readOnly = true)public Author getAuthor(Long authorId) {
+    @Transactional(readOnly = true)public AuthorEntity getAuthor(Long authorId) {
         return authorRepository.findById(authorId)
                 .orElseThrow(() -> new EntityNotFoundException("Author not found with ID: " + authorId));
     }
 
     @Transactional
-    public void updateAuthor(Author author) {
+    public void updateAuthor(AuthorEntity author) {
         if (!authorRepository.existsById(author.getId())) {
             throw new EntityNotFoundException("Author not found with ID: " + author.getId());
         }

@@ -1,6 +1,6 @@
 package com.example.DifferentWorlds.Service;
 
-import com.example.DifferentWorlds.Entity.Payment;
+import com.example.DifferentWorlds.Entity.PaymentEntity;
 import com.example.DifferentWorlds.Repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,24 +19,24 @@ public class PaymentService {
         this.paymentRepository = paymentRepository;
     }
 
-    public Payment createPayment(Payment payment) {
+    public PaymentEntity createPayment(PaymentEntity payment) {
         payment.setCreatedDate(LocalDateTime.now()); /// automatically
         return paymentRepository.save(payment);
     }
 
-    public Optional<Payment> getPaymentById(Long id) {
+    public Optional<PaymentEntity> getPaymentById(Long id) {
         return paymentRepository.findById(id);
     }
 
-    public Optional<Payment> getPaymentByUserName(String userName) {
+    public Optional<PaymentEntity> getPaymentByUserName(String userName) {
         return paymentRepository.findByCustomerName(userName);
     }
 
-    public List<Payment> getAllPayments() {
+    public List<PaymentEntity> getAllPayments() {
         return paymentRepository.findAll();
     }
 
-    public List<Payment> getPaymentsBetween(LocalDateTime startDate, LocalDateTime endDate) {
+    public List<PaymentEntity> getPaymentsBetween(LocalDateTime startDate, LocalDateTime endDate) {
         return paymentRepository.findByCreatedDateBetween(startDate, endDate);
     }
 }

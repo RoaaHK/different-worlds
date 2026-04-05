@@ -1,6 +1,6 @@
 package com.example.DifferentWorlds.Enums;
 
-public enum PaymentsMethods {
+public enum PaymentMethod {
 
     CreditCards,
     DebitCards,

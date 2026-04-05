@@ -1,8 +1,8 @@
 package com.example.DifferentWorlds.Service;
 
-import com.example.DifferentWorlds.Entity.Customer;
-import com.example.DifferentWorlds.Entity.LiteraryWorks;
-import com.example.DifferentWorlds.Entity.PurchaseHistory;
+import com.example.DifferentWorlds.Entity.CustomerEntity;
+import com.example.DifferentWorlds.Entity.LiteraryWorksEntity;
+import com.example.DifferentWorlds.Entity.PurchaseHistoryEntity;
 import com.example.DifferentWorlds.Repository.CustomerRepository;
 import com.example.DifferentWorlds.Repository.PurchaseHistoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,10 +29,10 @@ public class PurchaseService {
         this.literaryWorksRepository=literaryWorksRepository;
     }
 
-    public PurchaseHistory addPurchase(long customerId, long literaryWorkId, double purchasePrice) {
-        Customer customer= customerRepository.findById(customerId).orElseThrow(() -> new RuntimeException("Customer not found"));
-        LiteraryWorks literaryWork= literaryWorksRepository.findById(literaryWorkId).orElseThrow(() -> new RuntimeException("LiteraryWork not found"));
-        PurchaseHistory purchase=new PurchaseHistory();
+    public PurchaseHistoryEntity addPurchase(long customerId, long literaryWorkId, double purchasePrice) {
+        CustomerEntity customer= customerRepository.findById(customerId).orElseThrow(() -> new RuntimeException("Customer not found"));
+        LiteraryWorksEntity literaryWork= literaryWorksRepository.findById(literaryWorkId).orElseThrow(() -> new RuntimeException("LiteraryWork not found"));
+        PurchaseHistoryEntity purchase=new PurchaseHistoryEntity();
         purchase.setCustomer(customer);
         purchase.setLiteraryWork(literaryWork);
         purchase.setPurchaseDate(new Date());
@@ -40,7 +40,7 @@ public class PurchaseService {
         return purchaseHistoryRepository.save(purchase);
     }
 
-    public List<PurchaseHistory> getPurchaseHistory(Integer customerId) {
+    public List<PurchaseHistoryEntity> getPurchaseHistory(Integer customerId) {
         return purchaseHistoryRepository.findByCustomerId(customerId);
     }
 }

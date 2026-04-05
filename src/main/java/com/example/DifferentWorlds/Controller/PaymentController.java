@@ -1,6 +1,6 @@
 package com.example.DifferentWorlds.Controller;
 
-import com.example.DifferentWorlds.Entity.Payment;
+import com.example.DifferentWorlds.Entity.PaymentEntity;
 import com.example.DifferentWorlds.Service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,28 +23,28 @@ public class PaymentController {
     }
 
     @PostMapping
-    public ResponseEntity<Payment> createPayment(@RequestBody Payment payment) {
-        Payment savedPayment = paymentService.createPayment(payment);
+    public ResponseEntity<PaymentEntity> createPayment(@RequestBody PaymentEntity payment) {
+        PaymentEntity savedPayment = paymentService.createPayment(payment);
         return new ResponseEntity<>(savedPayment, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Payment> getPaymentById(@PathVariable Long id) {
-        Optional<Payment> payment = paymentService.getPaymentById(id);
+    public ResponseEntity<PaymentEntity> getPaymentById(@PathVariable Long id) {
+        Optional<PaymentEntity> payment = paymentService.getPaymentById(id);
         return payment.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping
-    public ResponseEntity<List<Payment>> getAllPayments() {
-        List<Payment> payments = paymentService.getAllPayments();
+    public ResponseEntity<List<PaymentEntity>> getAllPayments() {
+        List<PaymentEntity> payments = paymentService.getAllPayments();
         return ResponseEntity.ok(payments);
     }
 
     @GetMapping("/between")
-    public ResponseEntity<List<Payment>> getPaymentsBetween(
+    public ResponseEntity<List<PaymentEntity>> getPaymentsBetween(
             @RequestParam LocalDateTime startDate,
             @RequestParam LocalDateTime endDate) {
-        List<Payment> payments = paymentService.getPaymentsBetween(startDate, endDate);
+        List<PaymentEntity> payments = paymentService.getPaymentsBetween(startDate, endDate);
         return ResponseEntity.ok(payments);
     }
 }

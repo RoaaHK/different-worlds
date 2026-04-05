@@ -1,13 +1,10 @@
 package com.example.DifferentWorlds.Controller;
 
-import com.example.DifferentWorlds.Entity.Customer;
+import com.example.DifferentWorlds.Entity.CustomerEntity;
 import com.example.DifferentWorlds.Service.CustomerService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,14 +33,14 @@ public class CustomerController {
     }
 
     @DeleteMapping("/deleteAccount")
-    public void deleteAccount(@RequestBody Customer user) {
+    public void deleteAccount(@RequestBody CustomerEntity user) {
         customerService.deleteCustomer(user);
     }
 
     @GetMapping("/FindCustomerById/{customerID}")
-    public ResponseEntity<Customer> getCustomerById(@PathVariable Integer customerID) {
+    public ResponseEntity<CustomerEntity> getCustomerById(@PathVariable Integer customerID) {
         try {
-            Customer customer = customerService.getCustomer(customerID);
+            CustomerEntity customer = customerService.getCustomer(customerID);
             return ResponseEntity.ok(customer);
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -51,9 +48,9 @@ public class CustomerController {
     }
 
     @GetMapping("/FindCustomerByUserName/{userName}")
-    public ResponseEntity<Customer> getCustomerByUserName(@PathVariable String userName) {
+    public ResponseEntity<CustomerEntity> getCustomerByUserName(@PathVariable String userName) {
         try {
-            Customer customer = customerService.getCustomerUserName(userName);
+            CustomerEntity customer = customerService.getCustomerUserName(userName);
             return ResponseEntity.ok(customer);
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -67,12 +64,12 @@ public class CustomerController {
 //    }
 
     @PutMapping("/updateYourInfo/password")
-    public void updatePassword(@RequestBody Customer user) {
+    public void updatePassword(@RequestBody CustomerEntity user) {
         customerService.updatePassword(user);
     }
 
     @PutMapping("/updateYourInfo/email")
-    public void updateEmail(@RequestBody Customer user) {
+    public void updateEmail(@RequestBody CustomerEntity user) {
         customerService.updateEmail(user);
     }
 
@@ -86,8 +83,8 @@ public class CustomerController {
 //    }
 
     @GetMapping("/")
-    public ResponseEntity<List<Customer>> allCustomers() {
-        List<Customer> customers = customerService.allCustomers();
+    public ResponseEntity<List<CustomerEntity>> allCustomers() {
+        List<CustomerEntity> customers = customerService.allCustomers();
 
         return ResponseEntity.ok(customers);
     }

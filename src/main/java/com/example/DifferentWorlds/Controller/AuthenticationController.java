@@ -1,8 +1,8 @@
 package com.example.DifferentWorlds.Controller;
 
-import com.example.DifferentWorlds.Entity.Administrator;
-import com.example.DifferentWorlds.Entity.Author;
-import com.example.DifferentWorlds.Entity.Customer;
+import com.example.DifferentWorlds.Entity.AdministratorEntity;
+import com.example.DifferentWorlds.Entity.AuthorEntity;
+import com.example.DifferentWorlds.Entity.CustomerEntity;
 import com.example.DifferentWorlds.JWT.JwtUtils;
 import com.example.DifferentWorlds.Repository.AdministratorRepository;
 import com.example.DifferentWorlds.Repository.AuthorRepository;
@@ -13,26 +13,16 @@ import com.example.DifferentWorlds.Service.AuthorService;
 import com.example.DifferentWorlds.Service.CustomerService;
 import com.example.DifferentWorlds.dto.LoginRequestDTO;
 import com.example.DifferentWorlds.dto.ResponseDTO;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -73,7 +63,7 @@ public class AuthenticationController {
 
     // TODO find a way to reduce redundant code.
     @PostMapping("/signup/customer")
-    public ResponseEntity<?> signupCustomer(@RequestBody Customer customer) {
+    public ResponseEntity<?> signupCustomer(@RequestBody CustomerEntity customer) {
         authenticationService.signup(customer);
         ResponseDTO responseDTO = new ResponseDTO();
         responseDTO.setMessage("Customer registered successfully.");
@@ -81,14 +71,14 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signup/author")
-    public ResponseEntity<?> signupAuthor(@RequestBody Author author) {
+    public ResponseEntity<?> signupAuthor(@RequestBody AuthorEntity author) {
         authenticationService.signup(author);
         ResponseDTO responseDTO = new ResponseDTO();
         responseDTO.setMessage("Author registered successfully.");
         return ResponseEntity.ok(responseDTO);
     }
     @PostMapping("/signup/admin")
-    public ResponseEntity<?> signupAdmin(@RequestBody Administrator admin) {
+    public ResponseEntity<?> signupAdmin(@RequestBody AdministratorEntity admin) {
         authenticationService.signup(admin);
         ResponseDTO responseDTO = new ResponseDTO();
         responseDTO.setMessage("Admin registered successfully.");
@@ -109,7 +99,7 @@ public class AuthenticationController {
 
         final UserDetails userDetails = customerService.loadUserByUsername(loginRequest.getUserName());
         final String jwt = jwtUtils.generateToken(userDetails);
-        Customer customer = customerRepository.findByUserName(loginRequest.getUserName())
+        CustomerEntity customer = customerRepository.findByUserName(loginRequest.getUserName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         return ResponseEntity.ok(new ResponseDTO(
@@ -131,7 +121,7 @@ public class AuthenticationController {
 
         final UserDetails userDetails = adminService.loadUserByUsername(loginRequest.getUserName());
         final String jwt = jwtUtils.generateToken(userDetails);
-        Administrator admin = administratorRepository.findByUserName(loginRequest.getUserName())
+        AdministratorEntity admin = administratorRepository.findByUserName(loginRequest.getUserName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         return ResponseEntity.ok(new ResponseDTO(
@@ -153,7 +143,7 @@ public class AuthenticationController {
 
         final UserDetails userDetails = authorService.loadUserByUsername(loginRequest.getUserName());
         final String jwt = jwtUtils.generateToken(userDetails);
-        Author author = authorRepository.findByUserName(loginRequest.getUserName())
+        AuthorEntity author = authorRepository.findByUserName(loginRequest.getUserName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         return ResponseEntity.ok(new ResponseDTO(

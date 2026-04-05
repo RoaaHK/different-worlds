@@ -1,10 +1,9 @@
 package com.example.DifferentWorlds.Service;
 
 import com.example.DifferentWorlds.Entity.Guest;
-import com.example.DifferentWorlds.Entity.LiteraryWorks;
+import com.example.DifferentWorlds.Entity.LiteraryWorksEntity;
 import com.example.DifferentWorlds.Repository.GuestRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -31,7 +30,7 @@ public class GuestService {
 //        }
 //        return guestObj.get();
 //    }
-    public LiteraryWorks viewItems(LiteraryWorks items) {
+    public LiteraryWorksEntity viewItems(LiteraryWorksEntity items) {
         return items;
     }
 

@@ -1,6 +1,6 @@
 package com.example.DifferentWorlds.Controller;
 
-import com.example.DifferentWorlds.Entity.LiteraryWorks;
+import com.example.DifferentWorlds.Entity.LiteraryWorksEntity;
 import com.example.DifferentWorlds.Service.StoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -20,39 +20,39 @@ public class StoreController {
 
     //{itemId}
     @GetMapping("/FindLiteraryWorksById")
-    public void getItemById(@RequestBody LiteraryWorks item, @RequestParam int itemId) {
+    public void getItemById(@RequestBody LiteraryWorksEntity item, @RequestParam int itemId) {
         storeService.getItem(item, itemId);
     }
 
     /// method names and path names should be camel case
     @GetMapping("/GetAllItems")
-    public List<LiteraryWorks> getAllItems() {
+    public List<LiteraryWorksEntity> getAllItems() {
         return storeService.getAllItems();
     }
 
     // TODO all controllers must return something
     @PostMapping("/AddItem") //add item from one that works in store
-    public void addItem(@RequestBody LiteraryWorks item) {
+    public void addItem(@RequestBody LiteraryWorksEntity item) {
         storeService.addItem(item);
     }
 
     @DeleteMapping("/deleteItem")
-    public void deleteItem(LiteraryWorks item) {
+    public void deleteItem(LiteraryWorksEntity item) {
         storeService.deleteItem(item);
     }
 
     @PutMapping("/sale")
-    public void sale(LiteraryWorks item, double saleVal) {
+    public void sale(LiteraryWorksEntity item, double saleVal) {
         storeService.sale(item, saleVal);
     }
 
     @PutMapping("/addItems")
-    public void incCounts(LiteraryWorks item) {
+    public void incCounts(LiteraryWorksEntity item) {
         storeService.incCounts(item);
     }
 
     @PutMapping("/sellItems")
-    public void decCounts(LiteraryWorks item) {
+    public void decCounts(LiteraryWorksEntity item) {
         storeService.incCounts(item);
     }
 }
