@@ -11,6 +11,6 @@ import java.util.Optional;
 @Repository
 public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
     List<PaymentEntity> findByCreatedDateBetween(LocalDateTime startDate, LocalDateTime endDate);
-    Optional<PaymentEntity> findByCustomerName(String userName);
+    Optional<PaymentEntity> findByCustomer_UserName(String userName);
 
 }
