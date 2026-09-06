@@ -3,35 +3,22 @@ package com.example.DifferentWorlds.Service;
 import com.example.DifferentWorlds.Entity.AuthorEntity;
 import com.example.DifferentWorlds.Entity.LiteraryWorksEntity;
 import com.example.DifferentWorlds.Repository.AuthorRepository;
-import com.example.DifferentWorlds.Repository.ItemRepository;
+import com.example.DifferentWorlds.Repository.LiteraryWorksRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-
 @Service
-public class AuthorService implements UserDetailsService {
+public class AuthorService  {
 
-    private final ItemRepository literaryWorkRepository;
+    private final LiteraryWorksRepository literaryWorkRepository;
     private final AuthorRepository authorRepository;
 
     @Autowired
-    public AuthorService(AuthorRepository authorRepository, ItemRepository literaryWorkRepository) {
+    public AuthorService(AuthorRepository authorRepository, LiteraryWorksRepository literaryWorkRepository) {
         this.authorRepository = authorRepository;
         this.literaryWorkRepository = literaryWorkRepository;
-    }
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        AuthorEntity author = authorRepository.findByUserName(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
-        return new org.springframework.security.core.userdetails.User(author.getUserName(), author.getPassword(),
-                new ArrayList<>());
     }
 
     @Transactional
@@ -41,7 +28,7 @@ public class AuthorService implements UserDetailsService {
     }
 
     @Transactional(readOnly = true)
-    public LiteraryWorksEntity getWork(Long workId) {
+    public LiteraryWorksEntity getWork(Integer workId) {
         return literaryWorkRepository.findById(workId)
                 .orElseThrow(() -> new EntityNotFoundException("Literary work not found with ID: " + workId));
     }
@@ -49,37 +36,57 @@ public class AuthorService implements UserDetailsService {
     @Transactional
     public void addAuthor(AuthorEntity author) {
         if (authorRepository.findByUserName(author.getUserName()).isPresent()) {
-            throw new IllegalArgumentException("Username already exists");
+            throw new IllegalArgumentException(
+                    "Username already exists: " + author.getUserName());
         }
         authorRepository.save(author);
     }
 
-    @Transactional(readOnly = true)public AuthorEntity getAuthor(Long authorId) {
+    @Transactional(readOnly = true)
+    public AuthorEntity getAuthor(Integer authorId) {
         return authorRepository.findById(authorId)
-                .orElseThrow(() -> new EntityNotFoundException("Author not found with ID: " + authorId));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Author not found with ID: " + authorId));
+    }
+
+    @Transactional(readOnly = true)
+    public AuthorEntity getAuthorByUserName(String userName) {
+        return authorRepository.findByUserName(userName)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Author not found with username: " + userName));
+    }
+
+//    @Transactional(readOnly = true)
+//    public List<LiteraryWorksEntity> getWorksByAuthor(Integer authorId) {
+//        AuthorEntity author = authorRepository.findById(authorId)
+//                .orElseThrow(() -> new EntityNotFoundException(
+//                        "Author not found with ID: " + authorId));
+//        return List.copyOf(author.getWorks());
+//    }
+
+    @Transactional
+    public void updatePassword(Integer authorId, String newEncodedPassword) {
+        AuthorEntity existing = authorRepository.findById(authorId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Author not found with ID: " + authorId));
+        existing.setPassword(newEncodedPassword);
+        authorRepository.save(existing);
     }
 
     @Transactional
-    public void updateAuthor(AuthorEntity author) {
-        if (!authorRepository.existsById(author.getId())) {
-            throw new EntityNotFoundException("Author not found with ID: " + author.getId());
+    public void deleteAuthor(Integer authorId) {
+        if (!authorRepository.existsById(authorId)) {
+            throw new EntityNotFoundException(
+                    "Author not found with ID: " + authorId);
         }
-        authorRepository.save(author);
+        authorRepository.deleteById(authorId);
     }
 
-    @Transactional
-    public void deleteAuthor(Long id) {
-        if (!authorRepository.existsById(id)) {
-            throw new EntityNotFoundException("Author with ID " + id + " does not exist.");
-        }
-        authorRepository.deleteById(id);
-    }
-
-    @Transactional
-    public void deleteWork(Long workId) {
-        if (!literaryWorkRepository.existsById(workId)) {
-            throw new EntityNotFoundException("Work not found with ID: " + workId);
-        }
-        literaryWorkRepository.deleteById(workId);
-    }
+//    @Transactional
+//    public void deleteWork(Long workId) {
+//        if (!literaryWorkRepository.existsById(workId)) {
+//            throw new EntityNotFoundException("Work not found with ID: " + workId);
+//        }
+//        literaryWorkRepository.deleteById(workId);
+//    }
 }

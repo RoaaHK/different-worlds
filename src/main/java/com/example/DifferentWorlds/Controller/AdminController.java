@@ -10,10 +10,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/admin")
 public class AdminController {
 
-    @Autowired
     // TODO avoid using auto wire as best practice of spring use dependency injection instead using constructor or setter
-    private AdminService adminService;
+//    @Autowired
+    private final AdminService adminService;
 
+    public AdminController(AdminService adminService) {
+        this.adminService = adminService;
+    }
 //    @PatchMapping("/works/{id}/approve")
 //    public ResponseEntity<LiteraryWorks> approveWork(@PathVariable Long id) {
 //        LiteraryWorks approvedWork = adminService.approveWork(id);
@@ -21,7 +24,7 @@ public class AdminController {
 //    }
 
     @PatchMapping("/works/{id}/reject")
-    public ResponseEntity<LiteraryWorksEntity> rejectWork(@PathVariable Long id) {
+    public ResponseEntity<LiteraryWorksEntity> rejectWork(@PathVariable Integer id) {
         LiteraryWorksEntity rejectedWork = adminService.rejectWork(id);
         return ResponseEntity.ok(rejectedWork);
     }

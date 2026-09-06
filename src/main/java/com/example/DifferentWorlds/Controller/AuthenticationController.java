@@ -12,7 +12,7 @@ import com.example.DifferentWorlds.Service.AuthenticationService;
 import com.example.DifferentWorlds.Service.AuthorService;
 import com.example.DifferentWorlds.Service.CustomerService;
 import com.example.DifferentWorlds.dto.LoginRequestDTO;
-import com.example.DifferentWorlds.dto.ResponseDTO;
+import com.example.DifferentWorlds.dto.PurchaseResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,29 +65,28 @@ public class AuthenticationController {
     @PostMapping("/signup/customer")
     public ResponseEntity<?> signupCustomer(@RequestBody CustomerEntity customer) {
         authenticationService.signup(customer);
-        ResponseDTO responseDTO = new ResponseDTO();
-        responseDTO.setMessage("Customer registered successfully.");
-        return ResponseEntity.ok(responseDTO);
+        PurchaseResponseDTO purchaseResponseDTO = new PurchaseResponseDTO();
+        purchaseResponseDTO.setMessage("Customer registered successfully.");
+        return ResponseEntity.ok(purchaseResponseDTO);
     }
 
     @PostMapping("/signup/author")
     public ResponseEntity<?> signupAuthor(@RequestBody AuthorEntity author) {
         authenticationService.signup(author);
-        ResponseDTO responseDTO = new ResponseDTO();
-        responseDTO.setMessage("Author registered successfully.");
-        return ResponseEntity.ok(responseDTO);
+        PurchaseResponseDTO purchaseResponseDTO = new PurchaseResponseDTO();
+        purchaseResponseDTO.setMessage("Author registered successfully.");
+        return ResponseEntity.ok(purchaseResponseDTO);
     }
     @PostMapping("/signup/admin")
     public ResponseEntity<?> signupAdmin(@RequestBody AdministratorEntity admin) {
         authenticationService.signup(admin);
-        ResponseDTO responseDTO = new ResponseDTO();
-        responseDTO.setMessage("Admin registered successfully.");
-        return ResponseEntity.ok(responseDTO);
+        PurchaseResponseDTO purchaseResponseDTO = new PurchaseResponseDTO();
+        purchaseResponseDTO.setMessage("Admin registered successfully.");
+        return ResponseEntity.ok(purchaseResponseDTO);
     }
 
 
     @PostMapping("/login/customer")
-    // TODO try to avoid using ? unless it's a necessity
     public ResponseEntity<?> loginCustomer(@RequestBody LoginRequestDTO loginRequest) {
         try {
             authenticationManager.authenticate(
@@ -102,7 +101,7 @@ public class AuthenticationController {
         CustomerEntity customer = customerRepository.findByUserName(loginRequest.getUserName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        return ResponseEntity.ok(new ResponseDTO(
+        return ResponseEntity.ok(new PurchaseResponseDTO(
                 jwt,
                 customer.getUserName(),
                 customer.getPhoneNum(),
@@ -124,7 +123,7 @@ public class AuthenticationController {
         AdministratorEntity admin = administratorRepository.findByUserName(loginRequest.getUserName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        return ResponseEntity.ok(new ResponseDTO(
+        return ResponseEntity.ok(new PurchaseResponseDTO(
                 jwt,
                 admin.getUserName(),
                 admin.getId()
@@ -146,7 +145,7 @@ public class AuthenticationController {
         AuthorEntity author = authorRepository.findByUserName(loginRequest.getUserName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        return ResponseEntity.ok(new ResponseDTO(
+        return ResponseEntity.ok(new PurchaseResponseDTO(
                 jwt,
                 author.getUserName(),
                 author.getId()

@@ -1,111 +1,127 @@
 package com.example.DifferentWorlds.Service;
-import com.example.DifferentWorlds.Entity.AuthorEntity;
+
 import com.example.DifferentWorlds.Entity.LiteraryWorksEntity;
-import com.example.DifferentWorlds.Enums.ContentTypes;
-import com.example.DifferentWorlds.Enums.FictionGenres;
-import com.example.DifferentWorlds.Enums.NonFictionGenres;
-import com.example.DifferentWorlds.Repository.ItemRepository;
+import com.example.DifferentWorlds.Repository.LiteraryWorksRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Service
 public class StoreService {
     /// use constructor injection not Field injection
-    private final ItemRepository itemRepository;
+    private final LiteraryWorksRepository literaryWorksRepository;
 
     @Autowired
-    public StoreService(ItemRepository itemRepository) {
-        this.itemRepository = itemRepository;
+    public StoreService(LiteraryWorksRepository literaryWorksRepository) {
+        this.literaryWorksRepository = literaryWorksRepository;
     }
 
+    @Transactional(readOnly = true)
+    public LiteraryWorksEntity getItem(Integer itemId) {
+        return literaryWorksRepository.findById(itemId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Literary work not found with ID: " + itemId));
+    }
 
-    public LiteraryWorksEntity getItem(LiteraryWorksEntity item, long itemId){
-        if(itemRepository.findById(itemId).isEmpty()) {
-            System.out.println("Item Doesn't Found");
-        }
-        return item;
-    }
-    public void addItem(LiteraryWorksEntity item){
-        if(itemRepository.findByTitle(item.getTitle()).isEmpty()) {
-            itemRepository.save(item);
-        }
-    }
-    public void deleteItem(LiteraryWorksEntity item){
-        if(itemRepository.findByTitle(item.getTitle()).isPresent()) {
-            itemRepository.delete(item);
-        }
-    }
-    public void incCounts(LiteraryWorksEntity item){
-        Optional<LiteraryWorksEntity> optionalObj=itemRepository.findByTitle(item.getTitle());
+//    @Transactional(readOnly = true)
+//    public List<LiteraryWorksEntity> getAllItems() {
+//        return literaryWorksRepository.findByApprovalStatus(LiteraryWorkStatus.APPROVED);
+//    }
+//
+//    @Transactional(readOnly = true)
+//    public List<LiteraryWorksEntity> getPendingItems() {
+//        return literaryWorksRepository.findByApprovalStatus(LiteraryWorkStatus.PENDING);
+//    }
 
-        if(optionalObj.isEmpty()) {
-            itemRepository.save(item);
+    public List<LiteraryWorksEntity> getAllItem() {
+        return literaryWorksRepository.findAll();
+    }
+
+    @Transactional
+    public void addItem(LiteraryWorksEntity item) {
+        if (literaryWorksRepository.findByTitle(item.getTitle()).isPresent()) {
+            throw new IllegalArgumentException(
+                    "A literary work already exists with title: " + item.getTitle());
         }
-        else{
-            LiteraryWorksEntity obj=optionalObj.get();
-            obj.setCounts(obj.getCounts()+item.getCounts());
-            itemRepository.save(obj);
+        literaryWorksRepository.save(item);
+    }
+
+    @Transactional
+    public void deleteItem(Integer itemId) {
+        if (!literaryWorksRepository.existsById(itemId)) {
+            throw new EntityNotFoundException(
+                    "Literary work not found with ID: " + itemId);
         }
+        literaryWorksRepository.deleteById(itemId);
+    }
+
+    @Transactional
+    public void increaseStock(Integer itemId, int delta) {
+        if (delta <= 0) {
+            throw new IllegalArgumentException(
+                    "Delta must be positive, got: " + delta);
+        }
+        LiteraryWorksEntity item = literaryWorksRepository.findById(itemId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Literary work not found with ID: " + itemId));
+        item.setCounts(item.getCounts() + delta);
+        literaryWorksRepository.save(item);
     }
 
     // 5-10 through exception, check if > | ==
     // 0 exception
-    public void decCounts(LiteraryWorksEntity item){
-        Optional<LiteraryWorksEntity> optionalObj=itemRepository.findByTitle(item.getTitle());
-        if(optionalObj.isPresent() && optionalObj.get().getCounts()>= item.getCounts()) {
-            optionalObj.get().setCounts(optionalObj.get().getCounts()-item.getCounts());
-            itemRepository.save(optionalObj.get());
+    @Transactional
+    public void decreaseStock(Integer itemId, int delta) {
+        if (delta <= 0) {
+            throw new IllegalArgumentException(
+                    "Delta must be positive, got: " + delta);
         }
-        else {
-             throw new ArithmeticException() ;
+        LiteraryWorksEntity item = literaryWorksRepository.findById(itemId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Literary work not found with ID: " + itemId));
+        if (item.getCounts() < delta) {
+            throw new IllegalStateException(
+                    "Insufficient stock: available=" + item.getCounts()
+                            + ", requested=" + delta);
         }
-    }
-    public void sale(LiteraryWorksEntity item, double saleVal){
-        Optional<LiteraryWorksEntity> optionalObj=itemRepository.findByTitle(item.getTitle());
-        if(optionalObj.get().isInStore()){
-            optionalObj.get().setPrice(optionalObj.get().getPrice()*saleVal);
-            itemRepository.save(optionalObj.get());
-        }
-        else
-            throw new NoSuchElementException();
+        item.setCounts(item.getCounts() - delta);
+        literaryWorksRepository.save(item);
     }
 
-    public List<LiteraryWorksEntity> getAllItems() {
-        return itemRepository.findAll();
-    }
-
-
-    public void addItem(String name, String about, double price, boolean inStore,
-                        ContentTypes contentType, NonFictionGenres nonFictionGenre,
-                        FictionGenres fictionGenre, AuthorEntity author) {
-        // TODO extrtact into another method
-        LiteraryWorksEntity item = new LiteraryWorksEntity();
-        item.setTitle(name);
-        item.setAbout(about);
-        item.setPrice(price);
-        item.setInStore(inStore);
-        item.setContentType(contentType);
-        item.setNonFictionGenre(nonFictionGenre);
-        item.setFictionGenre(fictionGenre);
-        item.setAuthor(author);
-        //item.setApprovedByAdmin(false);
-        itemRepository.save(item);
-    }
-    public void setNonFictionGenre(LiteraryWorksEntity item, NonFictionGenres genre) {
-        if (item.getFictionGenre() != null) {
-            throw new IllegalArgumentException("Cannot set both fictionGenre and nonFictionGenre");
+    @Transactional
+    public void applyDiscount(Integer itemId, double discountPct) {
+        if (discountPct < 0.0 || discountPct > 1.0) {
+            throw new IllegalArgumentException(
+                    "Discount must be between 0.0 and 1.0, got: " + discountPct);
         }
-        item.setNonFictionGenre(genre);
+        LiteraryWorksEntity item = literaryWorksRepository.findById(itemId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Literary work not found with ID: " + itemId));
+        if (!item.getInStore()) {
+            throw new IllegalStateException(
+                    "Cannot discount an item that is not in store, ID: " + itemId);
+        }
+        item.setPrice(item.getPrice() * (1.0 - discountPct));
+        literaryWorksRepository.save(item);
     }
 
-    public void setFictionGenre(LiteraryWorksEntity item, FictionGenres genre) {
-        if (item.getNonFictionGenre() != null) {
-            throw new IllegalArgumentException("Cannot set both nonFictionGenre and fictionGenre");
-        }
-        item.setFictionGenre(genre);
-    }
+//    public void addItem(String name, String about, double price, boolean inStore,
+//                        ContentTypes contentType, NonFictionGenres nonFictionGenre,
+//                        FictionGenres fictionGenre, AuthorEntity author) {
+//        // TODO extrtact into another method
+//        LiteraryWorksEntity item = new LiteraryWorksEntity();
+//        item.setTitle(name);
+//        item.setAbout(about);
+//        item.setPrice(price);
+//        item.setInStore(inStore);
+//        item.setContentType(contentType);
+//        item.setNonFictionGenre(nonFictionGenre);
+//        item.setFictionGenre(fictionGenre);
+//        item.setAuthor(author);
+//        //item.setApprovedByAdmin(false);
+//        literaryWorksRepository.save(item);
+//    }
 }

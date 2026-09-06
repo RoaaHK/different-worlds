@@ -3,6 +3,7 @@ package com.example.DifferentWorlds.Entity;
 import com.example.DifferentWorlds.Enums.Category;
 import com.example.DifferentWorlds.Enums.ContentTypes;
 import com.example.DifferentWorlds.Enums.Genre;
+import com.example.DifferentWorlds.Enums.LiteraryWorkStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,8 +28,8 @@ public class LiteraryWorksEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private AuthorEntity author;
 
-//    @Enumerated(EnumType.STRING)
-//    private LiteraryWorkStatus approvalStatus = LiteraryWorkStatus.PENDING;
+    @Enumerated(EnumType.STRING)
+    private LiteraryWorkStatus approvalStatus = LiteraryWorkStatus.PENDING;
 
     @Enumerated(EnumType.STRING)
     private Category category;
