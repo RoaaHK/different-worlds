@@ -23,21 +23,20 @@
 hs_err_pid*
 replay_pid*
 
-src/main/resources/application.properties
-
 # IntelliJ IDEA
 .idea/
 *.iml
 *.iws
 *.ipr
+out/
 
 # Maven
 target/
 
-# Spring Boot
-src/main/resources/application.properties
+# Real environment configs (keep secrets out of Git)
 src/main/resources/application-dev.properties
 src/main/resources/application-prod.properties
+.env
 
 # OS
 .DS_Store

@@ -3,7 +3,6 @@ package com.example.DifferentWorlds.Service;
 import com.example.DifferentWorlds.Entity.CartEntity;
 import com.example.DifferentWorlds.Entity.CustomerEntity;
 import com.example.DifferentWorlds.Entity.LiteraryWorksEntity;
-import com.example.DifferentWorlds.Enums.LiteraryWorkStatus;
 import com.example.DifferentWorlds.Repository.CartRepository;
 import com.example.DifferentWorlds.Repository.CustomerRepository;
 import com.example.DifferentWorlds.Repository.LiteraryWorksRepository;
@@ -49,32 +48,25 @@ public class CartService {
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Literary work not found with ID: " + itemId));
 
-        if (work.getApprovalStatus() != LiteraryWorkStatus.APPROVED) {
-            // customer should not be able to add PENDING or REJECTED works to cart
-            // this could also be enforced at the controller level but
-            // business rules belong in the service layer
-            throw new IllegalStateException(
-                    "This literary work is not available in the store");
-        }
+        // TODO: uncomment once approval workflow is implemented
+        // if (work.getApprovalStatus() != LiteraryWorkStatus.APPROVED) {
+        //     throw new IllegalStateException("This literary work is not available in the store");
+        // }
 
         if (quantity <= 0) {
             throw new IllegalArgumentException(
                     "Quantity must be positive, got: " + quantity);
         }
 
-        // step 3 — check if this work is already in the customer's cart
-        // if yes → increase the quantity instead of creating a duplicate cart entry
-        // if no → create a new cart entry
+        // If this work is already in the customer's cart → increase quantity
+        // Otherwise → create a new cart entry
         return cartRepository
                 .findByCustomer_IdAndLiteraryWork_ItemId(customerId, itemId)
                 .map(existingEntry -> {
-                    // work is already in cart — just increase quantity
                     existingEntry.setQuantity(existingEntry.getQuantity() + quantity);
                     return cartRepository.save(existingEntry);
                 })
                 .orElseGet(() -> {
-                    // work is not in cart yet — create a new entry
-                    // addedDate is set automatically by @PrePersist on CartEntity
                     CartEntity newEntry = new CartEntity();
                     newEntry.setCustomer(customer);
                     newEntry.setLiteraryWork(work);
@@ -108,8 +100,6 @@ public class CartService {
 
     @Transactional
     public void clearCart(Integer customerId) {
-        // removes everything from a customer's cart
-        // called automatically after a successful purchase
         if (!customerRepository.existsById(customerId)) {
             throw new EntityNotFoundException(
                     "Customer not found with ID: " + customerId);

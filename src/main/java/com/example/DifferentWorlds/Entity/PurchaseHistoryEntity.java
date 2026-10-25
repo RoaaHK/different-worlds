@@ -23,8 +23,8 @@ public class PurchaseHistoryEntity {
     @ManyToOne
     private LiteraryWorksEntity literaryWork;
 
+    private Integer quantity;
     private Double purchasePrice;
-
     private LocalDateTime purchaseDate;
 
     @PrePersist

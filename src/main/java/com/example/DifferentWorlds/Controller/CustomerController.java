@@ -2,96 +2,83 @@ package com.example.DifferentWorlds.Controller;
 
 import com.example.DifferentWorlds.Entity.CustomerEntity;
 import com.example.DifferentWorlds.Service.CustomerService;
-import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.DifferentWorlds.dto.MessageResponseDTO;
+import com.example.DifferentWorlds.dto.UpdateEmailRequestDTO;
+import com.example.DifferentWorlds.dto.UpdatePasswordRequestDTO;
+import com.example.DifferentWorlds.dto.UserResponseDTO;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/customer")
+@RequestMapping("/api/customers")
 public class CustomerController {
 
-//     private EmailValidator validator;
-//    CustomerController(){
-//        this.validator=EmailValidator.getInstance();
-//    }
+    private final CustomerService customerService;
 
-
-    /// what HTTP Method is this RequestMapping ?
-//    @RequestMapping("/about")
-//    public String about() {
-//        return "choose what life U want to live today";
-//    }
-
-    CustomerService customerService;
-    @Autowired
-    CustomerController(CustomerService customerService){
-        this.customerService=customerService;
+    public CustomerController(CustomerService customerService) {
+        this.customerService = customerService;
     }
 
-    @DeleteMapping("/deleteAccount")
-    public void deleteAccount(@RequestBody CustomerEntity user) {
-        customerService.deleteCustomer(user);
+    @GetMapping("/{id}")
+    @PreAuthorize("@accessChecker.canAccessCustomer(#id)")
+    public ResponseEntity<UserResponseDTO> getCustomerById(@PathVariable Integer id) {
+        CustomerEntity customer = customerService.getCustomer(id);
+        return ResponseEntity.ok(mapToDTO(customer));
     }
 
-    @GetMapping("/FindCustomerById/{customerID}")
-    public ResponseEntity<CustomerEntity> getCustomerById(@PathVariable Integer customerID) {
-        try {
-            CustomerEntity customer = customerService.getCustomer(customerID);
-            return ResponseEntity.ok(customer);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
+    @GetMapping("/by-username/{userName}")
+    @PreAuthorize("@accessChecker.canAccessCustomerByUserName(#userName)")
+    public ResponseEntity<UserResponseDTO> getCustomerByUserName(@PathVariable String userName) {
+        CustomerEntity customer = customerService.getCustomerByUserName(userName);
+        return ResponseEntity.ok(mapToDTO(customer));
     }
 
-    @GetMapping("/FindCustomerByUserName/{userName}")
-    public ResponseEntity<CustomerEntity> getCustomerByUserName(@PathVariable String userName) {
-        try {
-            CustomerEntity customer = customerService.getCustomerUserName(userName);
-            return ResponseEntity.ok(customer);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-//    /// Use a DTO/Request Object
-//    @PostMapping("/Customer")
-//    public void addCustomer(@RequestBody Customer customer) {
-//        customerService.addCustomer(customer);
-//    }
-
-    @PutMapping("/updateYourInfo/password")
-    public void updatePassword(@RequestBody CustomerEntity user) {
-        customerService.updatePassword(user);
-    }
-
-    @PutMapping("/updateYourInfo/email")
-    public void updateEmail(@RequestBody CustomerEntity user) {
-        customerService.updateEmail(user);
-    }
-
-//    @GetMapping("/me")
-//    public ResponseEntity<Customer> authenticatedUser() {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//
-//        Customer currentUser = (Customer) authentication.getPrincipal();
-//
-//        return ResponseEntity.ok(currentUser);
-//    }
-
-    @GetMapping("/")
-    public ResponseEntity<List<CustomerEntity>> allCustomers() {
-        List<CustomerEntity> customers = customerService.allCustomers();
-
+    @GetMapping
+    public ResponseEntity<List<UserResponseDTO>> getAllCustomers() {
+        List<UserResponseDTO> customers = customerService.getAllCustomers()
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
         return ResponseEntity.ok(customers);
     }
 
-    /// variables then constructor then methods
-    /// pass EmailValidator through constructor
-    /// and remove @PostMapping("/sign up") from it
+    @PatchMapping("/{id}/password")
+    @PreAuthorize("@accessChecker.canAccessCustomer(#id)")
+    public ResponseEntity<MessageResponseDTO> updatePassword(
+            @PathVariable Integer id,
+            @RequestBody @Valid UpdatePasswordRequestDTO request) {
+        customerService.updatePassword(id, request.getNewPassword());
+        return ResponseEntity.ok(new MessageResponseDTO("Password updated successfully."));
+    }
 
+    @PatchMapping("/{id}/email")
+    @PreAuthorize("@accessChecker.canAccessCustomer(#id)")
+    public ResponseEntity<MessageResponseDTO> updateEmail(
+            @PathVariable Integer id,
+            @RequestBody @Valid UpdateEmailRequestDTO request) {
+        customerService.updateEmail(id, request.getNewEmail());
+        return ResponseEntity.ok(new MessageResponseDTO("Email updated successfully."));
+    }
 
+    @DeleteMapping("/{id}")
+    @PreAuthorize("@accessChecker.canAccessCustomer(#id)")
+    public ResponseEntity<Void> deleteCustomer(@PathVariable Integer id) {
+        customerService.deleteCustomer(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    private UserResponseDTO mapToDTO(CustomerEntity customer) {
+        return new UserResponseDTO(
+                customer.getId(),
+                customer.getName(),
+                customer.getUserName(),
+                customer.getEmail(),
+                "CUSTOMER"
+        );
+    }
 }

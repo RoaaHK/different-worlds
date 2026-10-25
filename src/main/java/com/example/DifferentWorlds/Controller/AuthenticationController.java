@@ -3,17 +3,17 @@ package com.example.DifferentWorlds.Controller;
 import com.example.DifferentWorlds.Entity.AdministratorEntity;
 import com.example.DifferentWorlds.Entity.AuthorEntity;
 import com.example.DifferentWorlds.Entity.CustomerEntity;
-import com.example.DifferentWorlds.JWT.JwtUtils;
-import com.example.DifferentWorlds.Repository.AdministratorRepository;
-import com.example.DifferentWorlds.Repository.AuthorRepository;
-import com.example.DifferentWorlds.Repository.CustomerRepository;
+import com.example.DifferentWorlds.JWT.JwtService;
 import com.example.DifferentWorlds.Service.AdminService;
 import com.example.DifferentWorlds.Service.AuthenticationService;
 import com.example.DifferentWorlds.Service.AuthorService;
 import com.example.DifferentWorlds.Service.CustomerService;
+import com.example.DifferentWorlds.UserDetails.CustomUserDetailsService;
 import com.example.DifferentWorlds.dto.LoginRequestDTO;
-import com.example.DifferentWorlds.dto.PurchaseResponseDTO;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.DifferentWorlds.dto.LoginResponseDTO;
+import com.example.DifferentWorlds.dto.SignupRequestDTO;
+import com.example.DifferentWorlds.dto.SignupResponseDTO;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,197 +21,132 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/auth")
-// TODO class is to long
 public class AuthenticationController {
 
-    private final CustomerRepository customerRepository;
-    private final CustomerService customerService;
-   // private final PasswordEncoder passwordEncoder;
     private final AuthenticationService authenticationService;
     private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+    private final CustomerService customerService;
     private final AdminService adminService;
-    private final AdministratorRepository administratorRepository;
-    private final JwtUtils jwtUtils;
     private final AuthorService authorService;
-    private final AuthorRepository authorRepository;
+    private final CustomUserDetailsService customUserDetailsService;
 
-    @Autowired
-    public AuthenticationController(CustomerService customerService,
-                                    //PasswordEncoder passwordEncoder,
-                                    AuthenticationService authenticationService,
-                                    CustomerRepository customerRepository,
-                                    AuthenticationManager authenticationManager, AdminService adminService, AdministratorRepository administratorRepository,
-                                    JwtUtils jwtUtils,
+    public AuthenticationController(AuthenticationService authenticationService,
+                                    AuthenticationManager authenticationManager,
+                                    JwtService jwtService,
+                                    CustomerService customerService,
+                                    AdminService adminService,
                                     AuthorService authorService,
-                                    AuthorRepository authorRepository) {
-        this.customerService = customerService;
-        //this.passwordEncoder = passwordEncoder;
+                                    CustomUserDetailsService customUserDetailsService) {
         this.authenticationService = authenticationService;
-        this.customerRepository = customerRepository;
         this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
+        this.customerService = customerService;
         this.adminService = adminService;
-        this.administratorRepository = administratorRepository;
-        this.jwtUtils=jwtUtils;
         this.authorService = authorService;
-        this.authorRepository = authorRepository;
+        this.customUserDetailsService = customUserDetailsService;
     }
-
-    // TODO find a way to reduce redundant code.
     @PostMapping("/signup/customer")
-    public ResponseEntity<?> signupCustomer(@RequestBody CustomerEntity customer) {
-        authenticationService.signup(customer);
-        PurchaseResponseDTO purchaseResponseDTO = new PurchaseResponseDTO();
-        purchaseResponseDTO.setMessage("Customer registered successfully.");
-        return ResponseEntity.ok(purchaseResponseDTO);
+    public ResponseEntity<SignupResponseDTO> signupCustomer(
+            @RequestBody @Valid SignupRequestDTO request) {
+        authenticationService.signupCustomer(request);
+        return ResponseEntity.ok(new SignupResponseDTO("Customer registered successfully."));
     }
 
     @PostMapping("/signup/author")
-    public ResponseEntity<?> signupAuthor(@RequestBody AuthorEntity author) {
-        authenticationService.signup(author);
-        PurchaseResponseDTO purchaseResponseDTO = new PurchaseResponseDTO();
-        purchaseResponseDTO.setMessage("Author registered successfully.");
-        return ResponseEntity.ok(purchaseResponseDTO);
+    public ResponseEntity<SignupResponseDTO> signupAuthor(
+            @RequestBody @Valid SignupRequestDTO request) {
+        authenticationService.signupAuthor(request);
+        return ResponseEntity.ok(new SignupResponseDTO("Author registered successfully."));
     }
     @PostMapping("/signup/admin")
-    public ResponseEntity<?> signupAdmin(@RequestBody AdministratorEntity admin) {
-        authenticationService.signup(admin);
-        PurchaseResponseDTO purchaseResponseDTO = new PurchaseResponseDTO();
-        purchaseResponseDTO.setMessage("Admin registered successfully.");
-        return ResponseEntity.ok(purchaseResponseDTO);
+    public ResponseEntity<SignupResponseDTO> signupAdmin(
+            @RequestBody @Valid SignupRequestDTO request) {
+        authenticationService.signupAdmin(request);
+        return ResponseEntity.ok(new SignupResponseDTO("Admin registered successfully."));
     }
-
 
     @PostMapping("/login/customer")
-    public ResponseEntity<?> loginCustomer(@RequestBody LoginRequestDTO loginRequest) {
+    public ResponseEntity<LoginResponseDTO> loginCustomer(
+            @RequestBody @Valid LoginRequestDTO request) {
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getUserName(),
-                            loginRequest.getPassword()));
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUserName(), request.getPassword()));
         } catch (BadCredentialsException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Incorrect username or password");
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED, "Incorrect username or password");
         }
 
-        final UserDetails userDetails = customerService.loadUserByUsername(loginRequest.getUserName());
-        final String jwt = jwtUtils.generateToken(userDetails);
-        CustomerEntity customer = customerRepository.findByUserName(loginRequest.getUserName())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(request.getUserName());
+        String jwt = jwtService.generateToken(userDetails);
+        CustomerEntity customer = customerService.getCustomerByUserName(request.getUserName());
 
-        return ResponseEntity.ok(new PurchaseResponseDTO(
+        return ResponseEntity.ok(new LoginResponseDTO(
                 jwt,
                 customer.getUserName(),
-                customer.getPhoneNum(),
-                customer.getId()
-                ));
+                customer.getId().longValue(),
+                "CUSTOMER"
+        ));
     }
+
     @PostMapping("/login/admin")
-    public ResponseEntity<?> loginAdmin(@RequestBody LoginRequestDTO loginRequest) {
+    public ResponseEntity<LoginResponseDTO> loginAdmin(
+            @RequestBody @Valid LoginRequestDTO request) {
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getUserName(),
-                            loginRequest.getPassword()));
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUserName(), request.getPassword()));
         } catch (BadCredentialsException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Incorrect username or password");
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED, "Incorrect username or password");
         }
 
-        final UserDetails userDetails = adminService.loadUserByUsername(loginRequest.getUserName());
-        final String jwt = jwtUtils.generateToken(userDetails);
-        AdministratorEntity admin = administratorRepository.findByUserName(loginRequest.getUserName())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(request.getUserName());
+        String jwt = jwtService.generateToken(userDetails);
+        AdministratorEntity admin = adminService.getAdminByUserName(request.getUserName());
 
-        return ResponseEntity.ok(new PurchaseResponseDTO(
+        return ResponseEntity.ok(new LoginResponseDTO(
                 jwt,
                 admin.getUserName(),
-                admin.getId()
+                admin.getId().longValue(),
+                "ADMIN"
         ));
     }
+
     @PostMapping("/login/author")
-    public ResponseEntity<?> loginAuthor(@RequestBody LoginRequestDTO loginRequest) {
+    public ResponseEntity<LoginResponseDTO> loginAuthor(
+            @RequestBody @Valid LoginRequestDTO request) {
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getUserName(),
-                            loginRequest.getPassword()));
-            //        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUserName(), request.getPassword()));
         } catch (BadCredentialsException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Incorrect username or password");
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED, "Incorrect username or password");
         }
 
-        final UserDetails userDetails = authorService.loadUserByUsername(loginRequest.getUserName());
-        final String jwt = jwtUtils.generateToken(userDetails);
-        AuthorEntity author = authorRepository.findByUserName(loginRequest.getUserName())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(request.getUserName());
+        String jwt = jwtService.generateToken(userDetails);
+        AuthorEntity author = authorService.getAuthorByUserName(request.getUserName());
 
-        return ResponseEntity.ok(new PurchaseResponseDTO(
+        return ResponseEntity.ok(new LoginResponseDTO(
                 jwt,
                 author.getUserName(),
-                author.getId()
+                author.getId().longValue(),
+                "AUTHOR"
         ));
     }
 
-
-
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authorizationHeader) {
-        //String token = jwtUtils.extractUsername(authorizationHeader);
+    public ResponseEntity<SignupResponseDTO> logout(
+            @RequestHeader("Authorization") String authorizationHeader) {
         String token = authorizationHeader.substring(7);
-        jwtUtils.blacklistToken(token);
-        return ResponseEntity.ok("Logged out successfully");
+        jwtService.blacklistToken(token);
+        return ResponseEntity.ok(new SignupResponseDTO("Logged out successfully."));
     }
 }
-
-
-// TODO remove unused method
-
-//    @PostMapping("/logout")
-//    public ResponseEntity<ResponseDTO> logout(@RequestHeader HttpServletRequest request) {
-//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//        if (auth != null) {
-//            SecurityContextHolder.getContext().setAuthentication(null);
-//        }
-//        ResponseDTO responseDTO = new ResponseDTO();
-//        responseDTO.setMessage("Logout successful.");
-//        return ResponseEntity.ok(responseDTO);
-//    }
-
-//    @PostMapping("/login")
-//    public ResponseEntity<ResponseDTO> login(@RequestBody LoginDTO requestDTO) {
-//        ResponseDTO responseDTO = new ResponseDTO();
-//        if (requestDTO.getUserName().equals("Roaa")) {
-//            responseDTO.setMessage("Login successful.");
-//        } else {
-//            responseDTO.setMessage("Login failed.");
-//        }
-//        return ResponseEntity.ok(responseDTO);
-//    }
-
-//
-//    @PostMapping("/login")
-//    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
-//        try {
-//            //authenticationService.authenticate();
-//            //return ResponseEntity.ok("User login successfully");
-//            String token = authenticationService.login(loginDTO);
-//            return ResponseEntity.ok(new ResponseDTO(token));
-//        } catch (IllegalArgumentException | BadCredentialsException e) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage()+"11111");
-//        }
-//    }
-//@PostMapping("/signup")
-//public ResponseEntity<?> signup(@RequestBody Object request) {
-//    if (request instanceof Customer) {
-//        authenticationService.signup((Customer) request);
-//    } else if (request instanceof Author) {
-//        authenticationService.signup((Author) request);
-//    } else {
-//        return ResponseEntity.badRequest().body("Invalid request type.");
-//    }
-//    ResponseDTO responseDTO = new ResponseDTO();
-//    responseDTO.setMessage("User registered successfully.");
-//    return ResponseEntity.ok(responseDTO);
-//}
-
-

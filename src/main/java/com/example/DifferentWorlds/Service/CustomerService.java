@@ -21,17 +21,6 @@ public class CustomerService {
         this.customerRepository = customerRepository;
     }
 
-
-//    @Transactional
-//    public void registerNewCustomer(UserDTO userDTO) {
-//
-//        CustomerEntity customer = new CustomerEntity();
-//        customer.setEmail(userDTO.getEmail());
-//        customer.setPassword(userDTO.getPassword());
-//
-//        customerRepository.save(customer);
-//    }
-
     // don't use @NotNull, check of null val in controller
 
     @Transactional(readOnly = true)
@@ -51,15 +40,6 @@ public class CustomerService {
     @Transactional(readOnly = true)
     public List<CustomerEntity> getAllCustomers() {
         return customerRepository.findAll();
-    }
-
-    @Transactional
-    public void registerCustomer(CustomerEntity customer) {
-        if (customerRepository.findByUserName(customer.getUserName()).isPresent()) {
-            throw new IllegalArgumentException(
-                    "Username already exists: " + customer.getUserName());
-        }
-        customerRepository.save(customer);
     }
 
     @Transactional
@@ -89,4 +69,3 @@ public class CustomerService {
         customerRepository.deleteById(customerId);
     }
 }
-

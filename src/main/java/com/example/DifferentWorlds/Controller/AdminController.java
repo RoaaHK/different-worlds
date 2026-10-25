@@ -1,8 +1,10 @@
 package com.example.DifferentWorlds.Controller;
 
-import com.example.DifferentWorlds.Entity.LiteraryWorksEntity;
 import com.example.DifferentWorlds.Service.AdminService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.DifferentWorlds.dto.MessageResponseDTO;
+import com.example.DifferentWorlds.dto.UpdatePasswordRequestDTO;
+import com.example.DifferentWorlds.dto.UserResponseDTO;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,22 +12,49 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/admin")
 public class AdminController {
 
-    // TODO avoid using auto wire as best practice of spring use dependency injection instead using constructor or setter
-//    @Autowired
     private final AdminService adminService;
 
     public AdminController(AdminService adminService) {
         this.adminService = adminService;
     }
-//    @PatchMapping("/works/{id}/approve")
-//    public ResponseEntity<LiteraryWorks> approveWork(@PathVariable Long id) {
-//        LiteraryWorks approvedWork = adminService.approveWork(id);
-//        return ResponseEntity.ok(approvedWork);
-//    }
 
-    @PatchMapping("/works/{id}/reject")
-    public ResponseEntity<LiteraryWorksEntity> rejectWork(@PathVariable Integer id) {
-        LiteraryWorksEntity rejectedWork = adminService.rejectWork(id);
-        return ResponseEntity.ok(rejectedWork);
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> getAdminById(@PathVariable Integer id) {
+        var admin = adminService.getAdmin(id);
+        return ResponseEntity.ok(new UserResponseDTO(
+                admin.getId(), admin.getName(), admin.getUserName(), admin.getEmail(), "ADMIN"));
+    }
+
+    @GetMapping("/by-username/{userName}")
+    public ResponseEntity<UserResponseDTO> getAdminByUserName(@PathVariable String userName) {
+        var admin = adminService.getAdminByUserName(userName);
+        return ResponseEntity.ok(new UserResponseDTO(
+                admin.getId(), admin.getName(), admin.getUserName(), admin.getEmail(), "ADMIN"));
+    }
+
+    @PatchMapping("/{id}/password")
+    public ResponseEntity<MessageResponseDTO> updatePassword(
+            @PathVariable Integer id,
+            @RequestBody @Valid UpdatePasswordRequestDTO request) {
+        adminService.updatePassword(id, request.getNewPassword());
+        return ResponseEntity.ok(new MessageResponseDTO("Password updated successfully."));
+    }
+
+    @PatchMapping("/works/{workId}/approve")
+    public ResponseEntity<MessageResponseDTO> approveWork(@PathVariable Integer workId) {
+        adminService.approveWork(workId);
+        return ResponseEntity.ok(new MessageResponseDTO("Work approved."));
+    }
+
+    @PatchMapping("/works/{workId}/reject")
+    public ResponseEntity<MessageResponseDTO> rejectWork(@PathVariable Integer workId) {
+        adminService.rejectWork(workId);
+        return ResponseEntity.ok(new MessageResponseDTO("Work rejected."));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteAdmin(@PathVariable Integer id) {
+        adminService.deleteAdmin(id);
+        return ResponseEntity.noContent().build();
     }
 }

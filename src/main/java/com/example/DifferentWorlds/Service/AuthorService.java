@@ -6,6 +6,7 @@ import com.example.DifferentWorlds.Repository.AuthorRepository;
 import com.example.DifferentWorlds.Repository.LiteraryWorksRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,11 +15,15 @@ public class AuthorService  {
 
     private final LiteraryWorksRepository literaryWorkRepository;
     private final AuthorRepository authorRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public AuthorService(AuthorRepository authorRepository, LiteraryWorksRepository literaryWorkRepository) {
+    public AuthorService(AuthorRepository authorRepository,
+                         LiteraryWorksRepository literaryWorkRepository,
+                         PasswordEncoder passwordEncoder) {
         this.authorRepository = authorRepository;
         this.literaryWorkRepository = literaryWorkRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -31,15 +36,6 @@ public class AuthorService  {
     public LiteraryWorksEntity getWork(Integer workId) {
         return literaryWorkRepository.findById(workId)
                 .orElseThrow(() -> new EntityNotFoundException("Literary work not found with ID: " + workId));
-    }
-
-    @Transactional
-    public void addAuthor(AuthorEntity author) {
-        if (authorRepository.findByUserName(author.getUserName()).isPresent()) {
-            throw new IllegalArgumentException(
-                    "Username already exists: " + author.getUserName());
-        }
-        authorRepository.save(author);
     }
 
     @Transactional(readOnly = true)
@@ -65,11 +61,11 @@ public class AuthorService  {
 //    }
 
     @Transactional
-    public void updatePassword(Integer authorId, String newEncodedPassword) {
+    public void updatePassword(Integer authorId, String newRawPassword) {
         AuthorEntity existing = authorRepository.findById(authorId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Author not found with ID: " + authorId));
-        existing.setPassword(newEncodedPassword);
+        existing.setPassword(passwordEncoder.encode(newRawPassword));
         authorRepository.save(existing);
     }
 

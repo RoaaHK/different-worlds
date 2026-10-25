@@ -6,27 +6,29 @@ import com.example.DifferentWorlds.Repository.AdministratorRepository;
 import com.example.DifferentWorlds.Repository.LiteraryWorksRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-// TODO avoid redundant code.
 public class AdminService  {
 
     private final AdministratorRepository adminRepository;
     private final LiteraryWorksRepository literaryWorkRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public AdminService(AdministratorRepository adminRepository, LiteraryWorksRepository literaryWorkRepository) {
+    public AdminService(AdministratorRepository adminRepository,
+                        LiteraryWorksRepository literaryWorkRepository,
+                        PasswordEncoder passwordEncoder) {
         this.adminRepository = adminRepository;
         this.literaryWorkRepository= literaryWorkRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional(readOnly = true)
     public AdministratorEntity getAdmin(Integer adminId) {
-        return adminRepository.findById(adminId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Admin not found with ID: " + adminId));
+        return findAdmin(adminId);
     }
 
     @Transactional(readOnly = true)
@@ -38,9 +40,7 @@ public class AdminService  {
 
     @Transactional
     public void approveWork(Integer workId) {
-        LiteraryWorksEntity work = literaryWorkRepository.findById(workId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Literary work not found with ID: " + workId));
+        LiteraryWorksEntity work = findWork(workId);
 //        if (work.getApprovalStatus() == LiteraryWorkStatus.APPROVED) {
 //            throw new IllegalStateException("Work is already approved");
 //        }
@@ -51,9 +51,7 @@ public class AdminService  {
 
     @Transactional
     public void rejectWork(Integer workId) {
-        LiteraryWorksEntity work = literaryWorkRepository.findById(workId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Literary work not found with ID: " + workId));
+        LiteraryWorksEntity work = findWork(workId);
 //        if (work.getApprovalStatus() == LiteraryWorkStatus.REJECTED) {
 //            throw new IllegalStateException("Work is already rejected");
 //        }
@@ -62,21 +60,10 @@ public class AdminService  {
     }
 
     @Transactional
-    public void updatePassword(Integer adminId, String newEncodedPassword) {
-        AdministratorEntity existing = adminRepository.findById(adminId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Admin not found with ID: " + adminId));
-        existing.setPassword(newEncodedPassword);
+    public void updatePassword(Integer adminId, String newRawPassword) {
+        AdministratorEntity existing = findAdmin(adminId);
+        existing.setPassword(passwordEncoder.encode(newRawPassword));
         adminRepository.save(existing);
-    }
-
-    @Transactional
-    public void addAdmin(AdministratorEntity admin) {
-        if (adminRepository.findByUserName(admin.getUserName()).isPresent()) {
-            throw new IllegalArgumentException(
-                    "Admin already exists with username: " + admin.getUserName());
-        }
-        adminRepository.save(admin);
     }
 
     @Transactional
@@ -87,5 +74,16 @@ public class AdminService  {
         }
         adminRepository.deleteById(adminId);
     }
-}
 
+    private AdministratorEntity findAdmin(Integer adminId) {
+        return adminRepository.findById(adminId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Admin not found with ID: " + adminId));
+    }
+
+    private LiteraryWorksEntity findWork(Integer workId) {
+        return literaryWorkRepository.findById(workId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Literary work not found with ID: " + workId));
+    }
+}

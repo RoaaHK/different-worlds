@@ -1,17 +1,21 @@
 package com.example.DifferentWorlds.Validator;
 
-import java.lang.annotation.*;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 @Documented
 @Constraint(validatedBy = PasswordValidator.class)
-@Target( { ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER })
+@Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PasswordConstraints {
 
-    String message() default "Invalid Password Format";
+    String message() default "Password must be at least 8 characters with at least one letter and one digit, and no spaces";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }
-

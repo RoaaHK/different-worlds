@@ -1,18 +1,18 @@
 package com.example.DifferentWorlds.UserDetails;
 
-import com.example.DifferentWorlds.Entity.AdministratorEntity;
-import com.example.DifferentWorlds.Entity.AuthorEntity;
-import com.example.DifferentWorlds.Entity.CustomerEntity;
 import com.example.DifferentWorlds.Repository.AdministratorRepository;
 import com.example.DifferentWorlds.Repository.AuthorRepository;
 import com.example.DifferentWorlds.Repository.CustomerRepository;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
+
+import java.util.List;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -23,7 +23,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final AdministratorRepository administratorRepository;
 
     @Autowired
-    public CustomUserDetailsService(AuthorRepository authorRepository, CustomerRepository customerRepository, AdministratorRepository administratorRepository) {
+    public CustomUserDetailsService(AuthorRepository authorRepository,
+                                    CustomerRepository customerRepository,
+                                    AdministratorRepository administratorRepository) {
         this.authorRepository = authorRepository;
         this.customerRepository = customerRepository;
         this.administratorRepository = administratorRepository;
@@ -32,23 +34,25 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         logger.debug("Searching for user with username: {}", username);
-        /// Check if the user is an author
-        AuthorEntity author = authorRepository.findByUserName(username).orElse(null);
-        if (author != null) {
-            return new CustomUserDetails(author.getUserName(), author.getPassword(), "Author");
-        }
 
-        /// Check if the user is a customer
-        CustomerEntity customer = customerRepository.findByUserName(username).orElse(null);
-        if (customer != null) {
-            return new CustomUserDetails(customer.getUserName(), customer.getPassword(), "Customer");
-        }
-        /// Check if the user is an admin
-        AdministratorEntity admin = administratorRepository.findByUserName(username).orElse(null);
-        if (admin != null) {
-            return new CustomUserDetails(admin.getUserName(), admin.getPassword(), "Administrator");
-        }
-        logger.error("User not found with username: {}", username);
-        throw new UsernameNotFoundException("User not found with username: " + username);
+        return authorRepository.findByUserName(username)
+                .map(author -> buildUserDetails(author.getId(), author.getUserName(), author.getPassword(), "AUTHOR"))
+                .or(() -> customerRepository.findByUserName(username)
+                        .map(customer -> buildUserDetails(customer.getId(), customer.getUserName(), customer.getPassword(), "CUSTOMER")))
+                .or(() -> administratorRepository.findByUserName(username)
+                        .map(admin -> buildUserDetails(admin.getId(), admin.getUserName(), admin.getPassword(), "ADMIN")))
+                .orElseThrow(() -> {
+                    logger.error("User not found with username: {}", username);
+                    return new UsernameNotFoundException("User not found with username: " + username);
+                });
+    }
+
+    private UserDetails buildUserDetails(Integer id, String userName, String password, String role) {
+        return new CustomUserDetails(
+                id,
+                userName,
+                password,
+                List.of(new SimpleGrantedAuthority("ROLE_" + role)),
+                role);
     }
 }

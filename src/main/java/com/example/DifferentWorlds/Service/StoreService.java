@@ -1,6 +1,9 @@
 package com.example.DifferentWorlds.Service;
 
 import com.example.DifferentWorlds.Entity.LiteraryWorksEntity;
+import com.example.DifferentWorlds.Exceptions.InsufficientStockException;
+import com.example.DifferentWorlds.Exceptions.ItemNotAvailableException;
+import com.example.DifferentWorlds.Exceptions.WorkAlreadyExistsException;
 import com.example.DifferentWorlds.Repository.LiteraryWorksRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +14,6 @@ import java.util.List;
 
 @Service
 public class StoreService {
-    /// use constructor injection not Field injection
     private final LiteraryWorksRepository literaryWorksRepository;
 
     @Autowired
@@ -43,8 +45,7 @@ public class StoreService {
     @Transactional
     public void addItem(LiteraryWorksEntity item) {
         if (literaryWorksRepository.findByTitle(item.getTitle()).isPresent()) {
-            throw new IllegalArgumentException(
-                    "A literary work already exists with title: " + item.getTitle());
+            throw new WorkAlreadyExistsException(item.getTitle());
         }
         literaryWorksRepository.save(item);
     }
@@ -71,8 +72,6 @@ public class StoreService {
         literaryWorksRepository.save(item);
     }
 
-    // 5-10 through exception, check if > | ==
-    // 0 exception
     @Transactional
     public void decreaseStock(Integer itemId, int delta) {
         if (delta <= 0) {
@@ -83,9 +82,7 @@ public class StoreService {
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Literary work not found with ID: " + itemId));
         if (item.getCounts() < delta) {
-            throw new IllegalStateException(
-                    "Insufficient stock: available=" + item.getCounts()
-                            + ", requested=" + delta);
+            throw new InsufficientStockException(item.getCounts(), delta);
         }
         item.setCounts(item.getCounts() - delta);
         literaryWorksRepository.save(item);
@@ -101,8 +98,7 @@ public class StoreService {
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Literary work not found with ID: " + itemId));
         if (!item.getInStore()) {
-            throw new IllegalStateException(
-                    "Cannot discount an item that is not in store, ID: " + itemId);
+            throw new ItemNotAvailableException(item.getTitle());
         }
         item.setPrice(item.getPrice() * (1.0 - discountPct));
         literaryWorksRepository.save(item);

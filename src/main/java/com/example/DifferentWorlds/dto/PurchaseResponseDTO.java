@@ -15,6 +15,7 @@ public class PurchaseResponseDTO {
     private String customerName;
     private Integer workId;
     private String workTitle;
+    private Integer quantity;
     private Double purchasePrice;
     private LocalDateTime purchaseDate;
 }

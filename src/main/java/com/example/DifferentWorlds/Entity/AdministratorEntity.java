@@ -13,9 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 
-// TODO replace GeneralInformation interface with abstract User class
-// TODO for naming convention make the entity class end with Entity i.e AdministratorEntity
-
 public class AdministratorEntity extends UserBaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
